@@ -16,8 +16,9 @@ logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.INFO
 )
 
-safone = base64.b64decode("aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9Bc21TYWZvbmUvZTMyNGVmYTU5OWFkN2YwMGE4YzRiMmE3Yzk3MDJkMjYvcmF3L2JvdHN0YXRzLmVudg==")
-subprocess.run(["wget", "-q", "-O", "config.env", safone])
+if not os.path.exists("config.env"):
+    safone = base64.b64decode("aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9Bc21TYWZvbmUvZTMyNGVmYTU5OWFkN2YwMGE4YzRiMmE3Yzk3MDJkMjYvcmF3L2JvdHN0YXRzLmVudg==")
+    subprocess.run(["wget", "-q", "-O", "config.env", safone])
 
 load_dotenv("config.env")
 
@@ -74,9 +75,9 @@ async def S1BOTS():
                     msg = history.messages[0].id
                     if snt.id == msg:
                         print(f"@{bot} is down.")
-                        edit_text += f"🤖 @{bot} → ❌\n"
+                        edit_text += f"🤖 **@{bot}** → ❌\n"
                     elif snt.id + 1 == msg:
-                        edit_text += f"🤖 @{bot} → ✅\n"
+                        edit_text += f"🤖 **@{bot}** → ✅\n"
                     await user_bot.send_read_acknowledge(bot)
                     c += 1
                 except FloodWaitError as f:
