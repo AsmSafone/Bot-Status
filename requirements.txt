@@ -1,5 +1,4 @@
 wget
 pytz
-base64
 telethon
-python-decouple
+python-dotenv
