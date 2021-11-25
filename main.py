@@ -1,3 +1,4 @@
+import os
 import pytz
 import base64
 import asyncio
@@ -15,18 +16,21 @@ logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.INFO
 )
 
-safone = str(base64.b64decode("aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9Bc21TYWZvbmUvZTMyNGVmYTU5OWFkN2YwMGE4YzRiMmE3Yzk3MDJkMjYvcmF3L2JvdHN0YXRzLmVudg=="))
+safone = base64.b64decode("aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9Bc21TYWZvbmUvZTMyNGVmYTU5OWFkN2YwMGE4YzRiMmE3Yzk3MDJkMjYvcmF3L2JvdHN0YXRzLmVudg==")
 subprocess.run(["wget", "-q", "-O", "config.env", safone])
 
-load_dotenv('config.env')
+load_dotenv("config.env")
+
+def getConfig(name: str):
+    return os.environ[name]
 
 try:
-    appid = APP_ID
-    apihash = API_HASH
-    session = SESSION
-    chnl_id = CHANNEL_ID
-    msg_id = MESSAGE_ID
-    botlist = BOTS
+    appid = int(getConfig("APP_ID"))
+    apihash = getConfig("API_HASH")
+    session = getConfig("SESSION")
+    chnl_id = int(getConfig("CHANNEL_ID"))
+    msg_id = int(getConfig("MESSAGE_ID"))
+    botlist = getConfig("BOTS")
     bots = botlist.split()
     session_name = str(session)
     user_bot = TelegramClient(StringSession(session_name), appid, apihash)
