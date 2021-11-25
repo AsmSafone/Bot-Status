@@ -1,3 +1,4 @@
-python-decouple
+wget
 pytz
 telethon
+python-decouple
