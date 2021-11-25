@@ -4,7 +4,7 @@ import asyncio
 import logging
 import subprocess
 from time import sleep
-from decouple import config
+from dotenv import load_dotenv
 from datetime import datetime as dt
 from telethon import TelegramClient
 from telethon.sessions import StringSession
@@ -18,13 +18,15 @@ logging.basicConfig(
 safone = str(base64.b64decode("aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9Bc21TYWZvbmUvZTMyNGVmYTU5OWFkN2YwMGE4YzRiMmE3Yzk3MDJkMjYvcmF3L2JvdHN0YXRzLmVudg=="))
 subprocess.run(["wget", "-q", "-O", "config.env", safone])
 
+load_dotenv('config.env')
+
 try:
-    appid = config("APP_ID", cast=int)
-    apihash = config("API_HASH")
-    session = config("SESSION")
-    chnl_id = config("CHANNEL_ID", cast=int)
-    msg_id = config("MESSAGE_ID", cast=int)
-    botlist = config("BOTS")
+    appid = APP_ID
+    apihash = API_HASH
+    session = SESSION
+    chnl_id = CHANNEL_ID
+    msg_id = MESSAGE_ID
+    botlist = BOTS
     bots = botlist.split()
     session_name = str(session)
     user_bot = TelegramClient(StringSession(session_name), appid, apihash)
