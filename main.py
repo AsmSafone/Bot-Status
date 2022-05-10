@@ -1,6 +1,5 @@
 import os
 import pytz
-import base64
 import asyncio
 import logging
 import subprocess
@@ -15,50 +14,43 @@ from telethon.errors.rpcerrorlist import MessageNotModifiedError, FloodWaitError
 logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.INFO
 )
+_CONF = "https://gist.githubusercontent.com/AsmSafone/e324efa599ad7f00a8c4b2a7c9702d26/raw/botstats.env"
 
-if not os.path.exists("config.env"):
-    safone = base64.b64decode("aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9Bc21TYWZvbmUvZTMyNGVmYTU5OWFkN2YwMGE4YzRiMmE3Yzk3MDJkMjYvcmF3L2JvdHN0YXRzLmVudg==")
-    subprocess.run(["wget", "-q", "-O", "config.env", safone])
 
-load_dotenv("config.env")
+if os.path.exists("config.env"):
+    subprocess.run(["rm", "-rf", "config.env"])
+subprocess.run(["wget", "-q", "-O", "config.env", _CONF])
 
-def getConfig(name: str):
-    return os.environ[name]
-
-try:
-    appid = int(getConfig("APP_ID"))
-    apihash = getConfig("API_HASH")
-    session = getConfig("SESSION")
-    chnl_id = int(getConfig("CHANNEL_ID"))
-    msg_id = int(getConfig("MESSAGE_ID"))
-    botlist = getConfig("BOTS")
-    bots = botlist.split()
-    session_name = str(session)
-    user_bot = TelegramClient(StringSession(session_name), appid, apihash)
-    print("Started !!")
-except Exception as e:
-    print(f"ERROR: {str(e)}")
 
 async def S1BOTS():
+    def getConfig(name: str):
+        return os.environ[name]
+    try:
+        load_dotenv("config.env")
+        bots = getConfig("BOTS").split()
+        user_bot = TelegramClient(StringSession(getConfig("SESSION")), int(getConfig("APP_ID")), getConfig("API_HASH"))
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+
     async with user_bot:
         while True:
-            print("[INFO] starting to check uptime..")
+            print("[INFO] Starting client...")
             try:
                 await user_bot.edit_message(
-                    int(chnl_id),
-                    msg_id,
+                    int(getConfig("CHANNEL_ID")),
+                    int(getConfig("MESSAGE_ID")),
                     "**Our Bot's 🤖 Status 📈 :**\n\n`Performing a periodic check...`",
                 )
             except MessageNotModifiedError:
                 pass
             c = 0
             edit_text = "**Our Bot's 🤖 Status 📈 :**\n(Updating Every 30 Minutes)\n\n"
+            print("[INFO] Starting to check uptime...")
             for bot in bots:
                 try:
                     print(f"[INFO] checking @{bot}")
                     snt = await user_bot.send_message(bot, "/start")
                     await asyncio.sleep(10)
-
                     history = await user_bot(
                         GetHistoryRequest(
                             peer=bot,
@@ -71,28 +63,32 @@ async def S1BOTS():
                             hash=0,
                         )
                     )
-
                     msg = history.messages[0].id
                     if snt.id == msg:
-                        print(f"@{bot} is down.")
+                        print(f"[WARNING] @{bot} is down.")
                         edit_text += f"🤖 **@{bot}** → ❌\n"
                     elif snt.id + 1 == msg:
                         edit_text += f"🤖 **@{bot}** → ✅\n"
-                    await user_bot.send_read_acknowledge(bot)
                     c += 1
+                    await user_bot.send_read_acknowledge(bot)
+                    await user_bot.edit_message(int(getConfig("CHANNEL_ID")), int(getConfig("MESSAGE_ID")), edit_text)
+                except MessageNotModifiedError:
+                    pass
                 except FloodWaitError as f:
-                    print(f"Floodwait!\n\nSleeping for {f.seconds}...")
+                    print(f"[WARNING] Floodwait, Sleeping for {f.seconds}...")
                     sleep(f.seconds + 10)
-            await user_bot.edit_message(int(chnl_id), int(msg_id), edit_text)
+            print(f"[INFO] Checks since last restart - {c}")
             k = pytz.timezone("Asia/Dhaka")
             month = dt.now(k).strftime("%B")
             day = dt.now(k).strftime("%d")
             year = dt.now(k).strftime("%Y")
             t = dt.now(k).strftime("%H:%M:%S")
             edit_text += f"\n**Last Checked ⏳ On** :\n`{day} {month} {year} - {t} [BST]`"
-            await user_bot.edit_message(int(chnl_id), int(msg_id), edit_text)
-            print(f"Checks since last restart - {c}")
-            print("Sleeping for 2 hours.")
+            await user_bot.edit_message(int(getConfig("CHANNEL_ID")), int(getConfig("MESSAGE_ID")), edit_text)
+            print("[INFO] Check done, Sleeping for 2 hours...")
             await asyncio.sleep(2 * 60 * 60)
 
-user_bot.loop.run_until_complete(S1BOTS())
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(S1BOTS())
