@@ -65,20 +65,19 @@ async def S1BOTS():
                     if snt.id == msg:
                         print(f"[WARNING] @{bot} is down.")
                         full_user = await user_bot.get_entity(bot)
-                        edit_text += f"➧ **[{utils.get_display_name(full_user)}](https://t.me/{bot})** [⚰️]\n"
+                        edit_text += f"➧ **[{str(utils.get_display_name(full_user))}](https://t.me/{bot})** [⚰️]\n"
                     elif snt.id + 1 == msg:
                         full_user = await user_bot.get_entity(bot)
-                        edit_text += f"➧ **[{utils.get_display_name(full_user)}](https://t.me/{bot})** [⚡️]\n"
+                        edit_text += f"➧ **[{str(utils.get_display_name(full_user))}](https://t.me/{bot})** [⚡️]\n"
                     c += 1
                     await user_bot.send_read_acknowledge(bot)
-                    await user_bot.edit_message(int(getConfig("CHANNEL_ID")), int(getConfig("MESSAGE_ID")), edit_text)
                 except MessageNotModifiedError:
                     print(f"[WARNING] Unable to edit message...")
                     pass
                 except FloodWaitError as f:
                     print(f"[WARNING] Floodwait, Sleeping for {f.seconds}...")
                     await asyncio.sleep(f.seconds + 10)
-            print(f"[INFO] Checks since last restart - {c}")
+            print(f"[INFO] Checks since last restart - {c} bots.")
             k = pytz.timezone("Asia/Dhaka")
             month = dt.now(k).strftime("%B")
             day = dt.now(k).strftime("%d")
