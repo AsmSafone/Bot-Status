@@ -2,35 +2,33 @@ import os
 import pytz
 import asyncio
 import logging
-import subprocess
-from time import sleep
 from dotenv import load_dotenv
 from datetime import datetime as dt
 from telethon import TelegramClient
 from telethon.sessions import StringSession
+from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.functions.messages import GetHistoryRequest
 from telethon.errors.rpcerrorlist import MessageNotModifiedError, FloodWaitError
 
 logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.INFO
 )
-_CONF = "https://gist.githubusercontent.com/AsmSafone/e324efa599ad7f00a8c4b2a7c9702d26/raw/botstats.env"
-
-
-if os.path.exists("config.env"):
-    subprocess.run(["rm", "-rf", "config.env"])
-subprocess.run(["wget", "-q", "-O", "config.env", _CONF])
+load_dotenv()
 
 
 async def S1BOTS():
     def getConfig(name: str):
         return os.environ[name]
     try:
-        load_dotenv("config.env")
         bots = getConfig("BOTS").split()
-        user_bot = TelegramClient(StringSession(getConfig("SESSION")), int(getConfig("APP_ID")), getConfig("API_HASH"))
+        user_bot = TelegramClient(
+            StringSession(getConfig("SESSION")),
+            int(getConfig("APP_ID")),
+            getConfig("API_HASH"),
+        )
     except Exception as e:
-        print(f"ERROR: {str(e)}")
+        logging.error(f"ERROR: {str(e)}")
+        return
 
     async with user_bot:
         while True:
@@ -66,9 +64,11 @@ async def S1BOTS():
                     msg = history.messages[0].id
                     if snt.id == msg:
                         print(f"[WARNING] @{bot} is down.")
-                        edit_text += f"🤖 **@{bot}** → ❌\n"
+                        full_user = await user_bot(GetFullUserRequest(bot))
+                        edit_text += f"➧ **[{full_user.user.first_name}](https://t.me/{bot})** [⚰️]\n"
                     elif snt.id + 1 == msg:
-                        edit_text += f"🤖 **@{bot}** → ✅\n"
+                        full_user = await user_bot(GetFullUserRequest(bot))
+                        edit_text += f"➧ **[{full_user.user.first_name}](https://t.me/{bot})** [⚡️]\n"
                     c += 1
                     await user_bot.send_read_acknowledge(bot)
                     await user_bot.edit_message(int(getConfig("CHANNEL_ID")), int(getConfig("MESSAGE_ID")), edit_text)
@@ -76,7 +76,7 @@ async def S1BOTS():
                     pass
                 except FloodWaitError as f:
                     print(f"[WARNING] Floodwait, Sleeping for {f.seconds}...")
-                    sleep(f.seconds + 10)
+                    await asyncio.sleep(f.seconds + 10)
             print(f"[INFO] Checks since last restart - {c}")
             k = pytz.timezone("Asia/Dhaka")
             month = dt.now(k).strftime("%B")
