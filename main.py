@@ -25,6 +25,7 @@ async def S1BOTS():
             int(getConfig("APP_ID")),
             getConfig("API_HASH"),
         )
+        user_bot.parse_mode = "markdown"
     except Exception as e:
         logging.error(f"ERROR: {str(e)}")
         return
